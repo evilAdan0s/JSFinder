@@ -8,6 +8,10 @@ from requests.packages import urllib3
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 
+RED = "\033[31m"
+YELLOW = "\033[33m"
+GREEN = "\033[32m"
+
 def parse_args():
     parser = argparse.ArgumentParser(epilog='\tExample: \r\npython ' + sys.argv[0] + " -u http://www.baidu.com")
     parser.add_argument("-u", "--url", help="The website")
@@ -212,6 +216,16 @@ def find_by_file(file_path, js=False):
 		i -= 1
 	return urls
 
+def geturlcode(url):
+	header = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.108 Safari/537.36",
+			  "Cookie": args.cookie}
+	try:
+		raw = requests.get(url, headers = header, timeout=3, verify=False)
+		urlcode = raw.status_code
+		return urlcode
+	except:
+		return None
+
 def giveresult(urls, domian):
 	if urls == None:
 		return None
@@ -220,7 +234,17 @@ def giveresult(urls, domian):
 	content_subdomain = ""
 	for url in urls:
 		content_url += url + "\n"
-		print(url)
+		urlcode = geturlcode(url)
+		if urlcode == 200:
+			print("\033[32m[200] " + url + "\033[0m")
+		elif urlcode == 403:
+			print("\033[31m[403] " + url + "\033[0m")
+		elif urlcode == 302:
+			print("\033[33m[302] " + url + "\033[0m")
+		elif urlcode == 404:
+			pass
+		else:
+			print("\033[38m[{}] ".format(urlcode) + url + "\033[0m")
 	subdomains = find_subdomain(urls, domian)
 	print("\nFind " + str(len(subdomains)) + " Subdomain:")
 	for subdomain in subdomains:
